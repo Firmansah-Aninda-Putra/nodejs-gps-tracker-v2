@@ -1,2 +1,2 @@
 # nodejs-gps-tracker-v2
-GPS TRACKER USING NODE JS 
+GPS TRACKER USING NODE.JS
