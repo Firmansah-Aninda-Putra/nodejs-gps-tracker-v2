@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Madiun Ambulance Tracker</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css"/>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"/>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/styles.css"/>
+
+  <!-- Leaflet Plugins -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
+  
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-realtime/2.2.0/leaflet-realtime.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-providers/leaflet-providers.js"></script>
+
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Custom JS -->
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="/images/ppid.jpg" alt="PPID Logo" class="navbar-logo" />
+    </div>
+    <div class="navbar-actions">
+      <a href="tel:112" class="emergency-contact">
+        <i class="fas fa-phone-alt pulse-icon"></i> Emergency: 112
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Welcome Section -->
+    <div id="welcomeSection" class="welcome-section">
+      <div class="welcome-header">
+        <h1 class="welcome-title">Madiun Ambulance Tracker</h1>
+        <p class="welcome-subtitle">Real-time GPS tracking system for emergency medical services</p>
+      </div>
+      
+      <div class="welcome-image-container">
+        <img src="images/kota madiun.jpeg" alt="Kota Madiun" class="city-image"/>
+      </div>
+      
+      <div class="button-container">
+        <button id="startBtn" class="btn btn-primary">
+          <i class="fas fa-map-marked-alt"></i> Mulai Pelacakan
+        </button>
+        <button id="loginAdminBtn" class="btn btn-secondary">
+          <i class="fas fa-user-shield"></i> Login Sebagai Admin
+        </button>
+      </div>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">
+            <i class="fas fa-location-arrow"></i>
+          </div>
+          <h3>Pelacakan Real-Time</h3>
+          <p>Monitor lokasi ambulan secara real-time di seluruh Kota Madiun</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <i class="fas fa-route"></i>
+          </div>
+          <h3>Visualisasi Rute</h3>
+          <p>Lihat jalur pergerakan dan rute ambulan dengan akurasi tinggi</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <i class="fas fa-tachometer-alt"></i>
+          </div>
+          <h3>Pembaruan Status</h3>
+          <p>Dapatkan peringatan instan tentang pergerakan dan ketersediaan ambulan</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3>Riwayat Perjalanan</h3>
+          <p>Akses data historis pergerakan ambulan untuk analisis lebih lanjut</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container" style="display: none;">
+      <div class="login-header">
+        <h2 class="section-title">Admin Login</h2>
+        <p class="login-subtitle">Masuk untuk memulai pelacakan ambulan</p>
+      </div>
+      
+      <div class="form-group">
+        <label for="username" class="form-label">Username:</label>
+        <div class="input-with-icon">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" class="form-control" placeholder="Masukkan username"/>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="password" class="form-label">Password:</label>
+        <div class="input-with-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" class="form-control" placeholder="Masukkan password"/>
+        </div>
+      </div>
+      
+      <button id="loginBtn" class="btn btn-primary btn-full">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+      
+      <p class="form-text mt-3 text-center">
+        <a href="#" id="backToHomeBtn" class="form-link">
+          <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+        </a>
+      </p>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+      <div class="admin-header">
+        <h2 class="section-title">Panel Kontrol Admin</h2>
+        <p id="adminInfo" class="admin-welcome"></p>
+      </div>
+      
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-ambulance"></i>
+          </div>
+          <div class="stat-details">
+            <h3 id="activeAmbulanceCount">0</h3>
+            <p>Ambulan Aktif</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-route"></i>
+          </div>
+          <div class="stat-details">
+            <h3 id="movingAmbulanceCount">0</h3>
+            <p>Sedang Bergerak</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-signal"></i>
+          </div>
+          <div class="stat-details">
+            <h3 id="gpsAccuracy">N/A</h3>
+            <p>Akurasi GPS</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="admin-controls">
+        <button id="startTrackingBtn" class="btn btn-success">
+          <i class="fas fa-play-circle"></i> Mulai Pelacakan GPS
+        </button>
+        <button id="stopTrackingBtn" class="btn btn-danger" style="display: none;">
+          <i class="fas fa-stop-circle"></i> Hentikan Pelacakan GPS
+        </button>
+        <button id="viewMapBtn" class="btn btn-primary">
+          <i class="fas fa-map"></i> Lihat Peta
+        </button>
+        <button id="logoutBtn" class="btn btn-secondary">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+      
+      <div id="statusMessage" class="status-message"></div>
+      
+      <div class="tracking-info">
+        <div class="tracking-detail">
+          <span class="detail-label">Status:</span>
+          <span id="trackingStatus" class="detail-value">Tidak Aktif</span>
+        </div>
+        <div class="tracking-detail">
+          <span class="detail-label">Kecepatan:</span>
+          <span id="currentSpeed" class="detail-value">0 km/h</span>
+        </div>
+        <div class="tracking-detail">
+          <span class="detail-label">Waktu Aktif:</span>
+          <span id="activeTime" class="detail-value">00:00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div id="mapSection" class="map-container" style="display: none;">
+      <div class="map-header">
+        <h2 class="section-title">Pantau Lokasi Ambulan</h2>
+        <div class="map-actions">
+          <button id="refreshMapBtn" class="icon-btn" title="Refresh Data">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button id="toggleHeatmapBtn" class="icon-btn" title="Toggle Heatmap">
+            <i class="fas fa-fire"></i>
+          </button>
+          <button id="toggleFullscreenBtn" class="icon-btn" title="Toggle Fullscreen">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="map-content">
+        <div id="map"></div>
+        
+        <div class="map-sidebar">
+          <div class="control-panel">
+            <h3 class="panel-title">Kontrol Peta</h3>
+            
+            <div class="control-group">
+              <input type="checkbox" id="autoFocus" class="control-checkbox" checked/>
+              <label for="autoFocus">Auto-fokus pada ambulan</label>
+            </div>
+            
+            <div class="control-group">
+              <input type="checkbox" id="showAllPaths" class="control-checkbox" checked/>
+              <label for="showAllPaths">Tampilkan semua jalur</label>
+            </div>
+            
+            <div class="control-group">
+              <input type="checkbox" id="showTrafficLayer" class="control-checkbox"/>
+              <label for="showTrafficLayer">Tampilkan kondisi lalu lintas</label>
+            </div>
+            
+            <div class="slider-control">
+              <label for="pathHistoryLength">Panjang Riwayat Jalur:</label>
+              <input type="range" id="pathHistoryLength" min="5" max="50" value="20" class="slider"/>
+              <span id="pathHistoryValue">20 titik</span>
+            </div>
+          </div>
+          
+          <div id="ambulanceList" class="ambulance-list">
+            <!-- Ambulance list will be populated dynamically -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="map-footer">
+        <button id="backToAdminBtn" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Kembali ke Panel Admin
+        </button>
+        <div class="last-update">
+          Terakhir diperbarui: <span id="lastUpdateTime">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-info">
+        <p>© 2025 Madiun City Emergency Services. All rights reserved.</p>
+        <p>Versi 2.0 | Diperbarui: April 2025</p>
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link">Tentang</a>
+        <a href="#" class="footer-link">Kontak</a>
+        <a href="#" class="footer-link">Bantuan</a>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Template for ambulance marker popup -->
+  <template id="ambulancePopupTemplate">
+    <div class="custom-popup">
+      <div class="popup-header">
+        <h3 class="ambulance-title">{{username}}</h3>
+        <span class="status-badge status-{{statusClass}}">{{status}}</span>
+      </div>
+      <div class="popup-body">
+        <div class="info-row">
+          <span class="info-label"><i class="fas fa-tachometer-alt"></i> Kecepatan:</span>
+          <span class="info-value">{{speed}} km/h</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fas fa-compass"></i> Arah:</span>
+          <span class="info-value">{{heading}}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fas fa-bullseye"></i> Akurasi:</span>
+          <span class="info-value">{{accuracy}} m</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="fas fa-clock"></i> Update Terakhir:</span>
+          <span class="info-value">{{lastUpdate}}</span>
+        </div>
+      </div>
+    </div>
+  </template>
+</body>
+</html>
